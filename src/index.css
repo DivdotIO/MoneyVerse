@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-border: var(--border);
+
+  --font-sans: 'Inter', sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+:root {
+  /* Dark Mode (Default) */
+  --background: #09090b;
+  --surface: #18181b;
+  --primary: #7c3aed;
+  --secondary: #f97316;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --success: #10b981;
+  --danger: #ef4444;
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+.light {
+  /* Light Mode */
+  --background: #f4f4f5; /* zinc-100 */
+  --surface: #ffffff;
+  --primary: #7c3aed; /* Keep primary or darken slightly? */
+  --secondary: #f97316;
+  --text: #18181b; /* zinc-900 */
+  --muted: #71717a; /* zinc-500 */
+  --success: #10b981;
+  --danger: #ef4444;
+  --border: rgba(0, 0, 0, 0.1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    @apply antialiased selection:bg-primary selection:text-white;
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: var(--color-background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-surface);
+    border-radius: 9999px;
+    border: 1px solid var(--color-background);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted);
+  }
+}
