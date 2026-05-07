@@ -6,11 +6,18 @@ import GroupExpensesList from '../components/groups/GroupExpensesList';
 import GroupBalances from '../components/groups/GroupBalances';
 import AddGroupExpenseModal from '../components/groups/AddGroupExpenseModal';
 import { cn } from '../utils/cn';
+import { useGroups } from '../context/GroupContext';
 
 const GroupDetails = () => {
     const { id } = useParams();
+    const { getGroupDetails } = useGroups();
+    const group = getGroupDetails(id);
     const [activeTab, setActiveTab] = useState('expenses'); // expenses, balances
     const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+
+    if (!group) {
+        return <div className="text-center p-8 text-muted">Group not found</div>;
+    }
 
     return (
         <div className="animate-fade-in space-y-6">
@@ -20,8 +27,8 @@ const GroupDetails = () => {
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <div>
-                    <h2 className="text-2xl font-bold text-text">Goa Trip 2024</h2>
-                    <p className="text-sm text-muted">5 members • Created Oct 2023</p>
+                    <h2 className="text-2xl font-bold text-text">{group.name}</h2>
+                    <p className="text-sm text-muted">{group.members.length} members • Created {new Date(group.createdAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</p>
                 </div>
                 <div className="ml-auto">
                     <button
@@ -52,13 +59,14 @@ const GroupDetails = () => {
 
             {/* Tab Content */}
             <div className="min-h-[400px]">
-                {activeTab === 'expenses' && <GroupExpensesList />}
-                {activeTab === 'balances' && <GroupBalances />}
+                {activeTab === 'expenses' && <GroupExpensesList groupId={id} />}
+                {activeTab === 'balances' && <GroupBalances groupId={id} />}
             </div>
 
             <AddGroupExpenseModal
                 isOpen={isAddExpenseOpen}
                 onClose={() => setIsAddExpenseOpen(false)}
+                groupId={id}
             />
         </div>
     );

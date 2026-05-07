@@ -3,14 +3,33 @@ import { DollarSign, Users } from 'lucide-react';
 import Modal from '../ui/Modal';
 import { cn } from '../../utils/cn';
 import { useSettings } from '../../context/SettingsContext';
+import { useGroups } from '../../context/GroupContext';
 
-const AddGroupExpenseModal = ({ isOpen, onClose }) => {
+const AddGroupExpenseModal = ({ isOpen, onClose, groupId }) => {
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [splitType, setSplitType] = useState('equal'); // equal, exact, percent
 
     const { currency } = useSettings();
+    const { addGroupExpense, getGroupDetails } = useGroups();
     const currencySymbol = currency === 'INR' ? '₹' : '$';
+    const group = getGroupDetails(groupId);
+    const members = group?.members || [];
+
+    const handleSubmit = () => {
+        if (!amount || !description) return;
+        const expenseData = {
+            description,
+            amount,
+            paidBy: 'You',
+            category: 'Food',
+            splitType
+        };
+        addGroupExpense(groupId, expenseData);
+        setAmount('');
+        setDescription('');
+        onClose();
+    };
 
     const splitOptions = [
         { id: 'equal', label: 'Equal' },
@@ -39,7 +58,7 @@ const AddGroupExpenseModal = ({ isOpen, onClose }) => {
                                 {currencySymbol}
                             </div>
                             <input
-                                type="number"qer
+                                type="number"
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.00"
                                 className="w-full bg-surface border border-border rounded-xl p-3 pl-10 text-text focus:outline-none focus:border-primary font-mono text-lg"
@@ -78,7 +97,7 @@ const AddGroupExpenseModal = ({ isOpen, onClose }) => {
 
                     {/* Mock Members List */}
                     <div className="space-y-3">
-                        {['You', 'John', 'Sarah', 'Mike'].map((member) => (
+                        {members.map((member) => (
                             <div key={member} className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">
@@ -87,7 +106,7 @@ const AddGroupExpenseModal = ({ isOpen, onClose }) => {
                                     <span className="text-sm text-muted">{member}</span>
                                 </div>
                                 {splitType === 'equal' && (
-                                    <span className="text-sm text-text">{currencySymbol}{amount ? (amount / 4).toFixed(2) : '0.00'}</span>
+                                    <span className="text-sm text-text">{currencySymbol}{amount ? (amount / members.length).toFixed(2) : '0.00'}</span>
                                 )}
                                 {splitType !== 'equal' && (
                                     <input
@@ -101,7 +120,7 @@ const AddGroupExpenseModal = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                <button className="w-full bg-primary py-3 rounded-xl font-bold text-white hover:bg-primary/90 transition-colors">
+                <button onClick={handleSubmit} className="w-full bg-primary py-3 rounded-xl font-bold text-white hover:bg-primary/90 transition-colors">
                     Add Expense
                 </button>
             </div>

@@ -1,17 +1,26 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
+import { useGroups } from '../../context/GroupContext';
 import { formatCurrency } from '../../utils/format';
 
-const GroupBalances = () => {
+const GroupBalances = ({ groupId }) => {
     const { currency } = useSettings();
+    const { getGroupDetails } = useGroups();
     const rate = currency === 'INR' ? 82 : 1;
 
-    const settlements = [
-        { from: 'Sarah', to: 'You', amount: 150 },
-        { from: 'Mike', to: 'John', amount: 85 },
-        { from: 'You', to: 'John', amount: 45 },
-    ].map(s => ({ ...s, amount: s.amount * rate }));
+    const group = getGroupDetails(groupId);
+    const expenses = group?.expenses || [];
+    const members = group?.members || ['You'];
+
+    const totalPaidByYou = expenses.filter(e => e.paidBy === 'You').reduce((sum, e) => sum + parseFloat(e.amount), 0);
+    const perPersonShare = totalPaidByYou / members.length;
+
+    const settlements = members.filter(m => m !== 'You').map(m => ({
+        from: m,
+        to: 'You',
+        amount: perPersonShare
+    })).filter(s => s.amount > 0);
 
     return (
         <div className="space-y-4">
@@ -45,6 +54,11 @@ const GroupBalances = () => {
                         </div>
                     </div>
                 ))}
+                {settlements.length === 0 && (
+                    <div className="text-center p-8 text-muted bg-surface rounded-xl border border-border">
+                        No pending settlements. You are all settled up!
+                    </div>
+                )}
             </div>
 
             {/* Settle Up Button */}

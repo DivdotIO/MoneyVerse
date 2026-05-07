@@ -3,22 +3,36 @@ import { Plus, Users, Search, MoreVertical } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
+import { useGroups } from '../context/GroupContext';
 import { formatCurrency } from '../utils/format';
 
 const Groups = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const { currency } = useSettings();
+    const { groups, getGroupDetails, addGroup } = useGroups();
     const rate = currency === 'INR' ? 82 : 1;
 
-    const groups = [
-        { id: 1, name: 'Goa Trip 2024', members: 5, totalExpense: 15400, yourShare: 3200, color: 'bg-purple-500' },
-        { id: 2, name: 'Flat 302', members: 3, totalExpense: 4500, yourShare: 1500, color: 'bg-orange-500' },
-        { id: 3, name: 'Weekend Party', members: 8, totalExpense: 8200, yourShare: 1025, color: 'bg-emerald-500' },
-    ].map(g => ({
-        ...g,
-        totalExpense: g.totalExpense * rate,
-        yourShare: g.yourShare * rate
-    }));
+    const [groupName, setGroupName] = useState('');
+    const [groupMembers, setGroupMembers] = useState('');
+
+    const handleCreateGroup = (e) => {
+        e.preventDefault();
+        if (!groupName.trim()) return;
+        addGroup(groupName, groupMembers);
+        setGroupName('');
+        setGroupMembers('');
+        setIsCreateModalOpen(false);
+    };
+
+    const displayGroups = groups.map(g => {
+        const details = getGroupDetails(g.id);
+        return {
+            ...g,
+            totalExpense: (details?.totalExpense || 0),
+            yourShare: (details?.yourShare || 0),
+            membersCount: g.members.length
+        };
+    });
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -48,7 +62,7 @@ const Groups = () => {
 
             {/* Group List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {groups.map((group) => (
+                {displayGroups.map((group) => (
                     <Link to={`/groups/${group.id}`} key={group.id} className="block group">
                         <div className="bg-surface p-6 rounded-2xl border border-white/5 hover:border-primary/50 transition-all relative overflow-hidden">
                             <div className={`absolute top-0 right-0 w-24 h-24 ${group.color} opacity-10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
@@ -61,7 +75,7 @@ const Groups = () => {
                             </div>
 
                             <h3 className="text-xl font-bold text-text mb-1 group-hover:text-primary transition-colors">{group.name}</h3>
-                            <p className="text-muted text-sm mb-6">{group.members} members</p>
+                            <p className="text-muted text-sm mb-6">{group.membersCount} members</p>
 
                             <div className="flex justify-between items-end">
                                 <div>
@@ -86,14 +100,14 @@ const Groups = () => {
                 onClose={() => setIsCreateModalOpen(false)}
                 title="Create New Group"
             >
-                <form className="space-y-4">
+                <form onSubmit={handleCreateGroup} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-muted mb-1">Group Name</label>
-                        <input type="text" placeholder="e.g. Summer Trip" className="w-full bg-surface border border-border rounded-xl p-3 text-text focus:outline-none focus:border-primary" />
+                        <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Summer Trip" className="w-full bg-surface border border-border rounded-xl p-3 text-text focus:outline-none focus:border-primary" required />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-muted mb-1">Add Members</label>
-                        <textarea placeholder="Enter email addresses..." className="w-full bg-surface border border-border rounded-xl p-3 text-text focus:outline-none focus:border-primary h-24 resize-none"></textarea>
+                        <textarea value={groupMembers} onChange={(e) => setGroupMembers(e.target.value)} placeholder="Enter names separated by commas (e.g. John, Sarah)" className="w-full bg-surface border border-border rounded-xl p-3 text-text focus:outline-none focus:border-primary h-24 resize-none"></textarea>
                     </div>
                     <div className="pt-2 flex justify-end gap-3">
                         <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 rounded-xl text-muted hover:text-text hover:bg-text/5 transition-colors">Cancel</button>

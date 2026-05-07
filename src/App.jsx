@@ -13,6 +13,7 @@ import ExpensesHistory from './pages/ExpensesHistory';
 import { SettingsProvider } from './context/SettingsContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ExpenseProvider } from './context/ExpenseContext';
+import { GroupProvider } from './context/GroupContext';
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute = () => {
@@ -24,8 +25,9 @@ function App() {
   return (
     <AuthProvider>
       <ExpenseProvider>
-        <SettingsProvider>
-          <Router>
+        <GroupProvider>
+          <SettingsProvider>
+            <Router>
             <Routes>
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Layout />}>
@@ -43,6 +45,7 @@ function App() {
             </Routes>
           </Router>
         </SettingsProvider>
+        </GroupProvider>
       </ExpenseProvider>
     </AuthProvider>
   );

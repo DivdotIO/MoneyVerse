@@ -1,17 +1,19 @@
 import React from 'react';
 import { ShoppingCart, Utensils, Plane } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
+import { useGroups } from '../../context/GroupContext';
 import { formatCurrency } from '../../utils/format';
 
-const GroupExpensesList = () => {
+const GroupExpensesList = ({ groupId }) => {
     const { currency } = useSettings();
+    const { getGroupDetails } = useGroups();
     const rate = currency === 'INR' ? 82 : 1;
-
-    const expenses = [
-        { id: 1, description: 'Pizza Night', amount: 45, paidBy: 'You', date: 'Oct 24', category: 'Food' },
-        { id: 2, description: 'Uber', amount: 25, paidBy: 'John', date: 'Oct 23', category: 'Travel' },
-        { id: 3, description: 'Groceries', amount: 55, paidBy: 'Sarah', date: 'Oct 22', category: 'Shopping' },
-    ].map(e => ({ ...e, amount: e.amount * rate }));
+    
+    const group = getGroupDetails(groupId);
+    const expenses = (group?.expenses || []).map(e => ({
+        ...e,
+        amount: parseFloat(e.amount)
+    }));
 
     return (
         <div className="space-y-4">
@@ -31,7 +33,7 @@ const GroupExpensesList = () => {
 
                     <div className="text-right min-w-0 flex-shrink-0 ml-2">
                         <p className="text-text font-bold truncate max-w-[120px]">{formatCurrency(expense.amount, currency)}</p>
-                        <p className="text-xs text-muted truncate max-w-[120px]">You owe {expense.paidBy === 'You' ? 0 : formatCurrency(expense.amount / 5, currency)}</p>
+                        <p className="text-xs text-muted truncate max-w-[120px]">You owe {expense.paidBy === 'You' ? 0 : formatCurrency(expense.amount / (group?.members.length || 1), currency)}</p>
                     </div>
                 </div>
             ))}

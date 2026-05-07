@@ -42,7 +42,7 @@ export const ExpenseProvider = ({ children }) => {
     const updateIncome = (amount) => {
         setIncome(Number(amount));
     };
-
+    
     const resetData = () => {
         setExpenses([]);
         setIncome(0);
