@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useSettings } from '../context/SettingsContext';
 import { useExpenses } from '../context/ExpenseContext';
 import { formatCurrency } from '../utils/format';
@@ -9,17 +9,16 @@ const Analytics = () => {
     const { expenses, income } = useExpenses();
     const rate = currency === 'INR' ? 82 : 1;
 
-    // Calculate dynamic monthly data for the last 6 months
+    // Calculate dynamic monthly data starting from January (first 6 months)
     const generateMonthlyData = () => {
         const data = [];
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date();
-            d.setMonth(d.getMonth() - i);
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 6; i++) {
+            const d = new Date(currentYear, i, 1);
             const monthNameShort = d.toLocaleDateString('en-GB', { month: 'short' }); 
             const monthNameLong = d.toLocaleDateString('en-GB', { month: 'long' });
-            const year = d.getFullYear();
 
-            const monthExpenses = expenses.filter(e => e.date.includes(`${monthNameLong} ${year}`) || e.date.includes(`${monthNameLong}, ${year}`));
+            const monthExpenses = expenses.filter(e => e.date.includes(`${monthNameLong} ${currentYear}`) || e.date.includes(`${monthNameLong}, ${currentYear}`));
             const monthExpenseTotal = monthExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
             data.push({
@@ -59,21 +58,11 @@ const Analytics = () => {
         <div className="space-y-6 animate-fade-in pb-10">
             <h2 className="text-2xl font-bold text-text mb-6">Financial Analytics</h2>
 
-            {/* Row 1: Income vs Expense Trend (Area) */}
+            {/* Row 1: Income vs Expense Trend (Line) */}
             <div className="bg-surface p-6 rounded-2xl border border-border h-[400px]">
                 <h3 className="text-lg font-bold text-text mb-6">Income vs Expense Trend</h3>
                 <ResponsiveContainer width="100%" height="85%">
-                    <AreaChart data={monthlyData}>
-                        <defs>
-                            <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
+                    <LineChart data={monthlyData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.3} />
                         <XAxis dataKey="name" stroke="#a1a1aa" />
                         <YAxis stroke="#a1a1aa" tickFormatter={(val) => val >= 1000 ? `${val / 1000}k` : val} />
@@ -82,9 +71,9 @@ const Analytics = () => {
                             formatter={(value) => [formatCurrency(value, currency), 'Amount']}
                         />
                         <Legend />
-                        <Area type="monotone" dataKey="income" stroke="#10b981" fillOpacity={1} fill="url(#colorInc)" />
-                        <Area type="monotone" dataKey="expense" stroke="#ef4444" fillOpacity={1} fill="url(#colorExp)" />
-                    </AreaChart>
+                        <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    </LineChart>
                 </ResponsiveContainer>
             </div>
 
