@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useSettings } from '../context/SettingsContext';
 import { useExpenses } from '../context/ExpenseContext';
 import { formatCurrency } from '../utils/format';
@@ -9,28 +9,30 @@ const Analytics = () => {
     const { expenses, income } = useExpenses();
     const rate = currency === 'INR' ? 82 : 1;
 
-    // Calculate total expenses
-    const totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+    // Calculate dynamic monthly data for the last 6 months
+    const generateMonthlyData = () => {
+        const data = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthNameShort = d.toLocaleDateString('en-GB', { month: 'short' }); 
+            const monthNameLong = d.toLocaleDateString('en-GB', { month: 'long' });
+            const year = d.getFullYear();
 
-    // Prepare data for Income vs Expense Overview
-    const incomeVsExpenseData = [
-        { name: 'Income', amount: income },
-        { name: 'Expense', amount: totalExpense }
-    ];
+            const monthExpenses = expenses.filter(e => e.date.includes(`${monthNameLong} ${year}`) || e.date.includes(`${monthNameLong}, ${year}`));
+            const monthExpenseTotal = monthExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
-    // Keep the monthly savings data logic (using mock for trend, but actual for the first chart)
-    const monthlyData = [
-        { name: 'Jan', income: 1200, expense: 800 },
-        { name: 'Feb', income: 1100, expense: 750 },
-        { name: 'Mar', income: 1300, expense: 950 },
-        { name: 'Apr', income: 1250, expense: 820 },
-        { name: 'May', income: 1150, expense: 880 },
-        { name: 'Jun', income: 1400, expense: 790 },
-    ].map(item => ({
-        ...item,
-        income: item.income * rate,
-        expense: item.expense * rate
-    }));
+            data.push({
+                name: monthNameShort,
+                income: income, 
+                expense: monthExpenseTotal,
+                savings: income - monthExpenseTotal
+            });
+        }
+        return data;
+    };
+
+    const monthlyData = generateMonthlyData();
 
     // Generate dynamic category data for PieChart
     const aggregatedData = expenses.reduce((acc, curr) => {
@@ -57,27 +59,32 @@ const Analytics = () => {
         <div className="space-y-6 animate-fade-in pb-10">
             <h2 className="text-2xl font-bold text-text mb-6">Financial Analytics</h2>
 
-            {/* Row 1: Income vs Expense Overview (Bar) */}
+            {/* Row 1: Income vs Expense Trend (Area) */}
             <div className="bg-surface p-6 rounded-2xl border border-border h-[400px]">
-                <h3 className="text-lg font-bold text-text mb-6">Income vs Expense Overview</h3>
+                <h3 className="text-lg font-bold text-text mb-6">Income vs Expense Trend</h3>
                 <ResponsiveContainer width="100%" height="85%">
-                    <BarChart data={incomeVsExpenseData}>
+                    <AreaChart data={monthlyData}>
+                        <defs>
+                            <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.3} />
                         <XAxis dataKey="name" stroke="#a1a1aa" />
                         <YAxis stroke="#a1a1aa" tickFormatter={(val) => val >= 1000 ? `${val / 1000}k` : val} />
                         <Tooltip
                             contentStyle={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                            cursor={{ fill: 'var(--muted)', opacity: 0.1 }}
                             formatter={(value) => [formatCurrency(value, currency), 'Amount']}
                         />
-                        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                            {
-                                incomeVsExpenseData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.name === 'Income' ? '#10b981' : '#ef4444'} />
-                                ))
-                            }
-                        </Bar>
-                    </BarChart>
+                        <Legend />
+                        <Area type="monotone" dataKey="income" stroke="#10b981" fillOpacity={1} fill="url(#colorInc)" />
+                        <Area type="monotone" dataKey="expense" stroke="#ef4444" fillOpacity={1} fill="url(#colorExp)" />
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
 
@@ -123,7 +130,7 @@ const Analytics = () => {
                                 cursor={{ fill: 'var(--muted)', opacity: 0.1 }}
                                 formatter={(value) => [formatCurrency(value, currency), 'Savings']}
                             />
-                            <Bar dataKey="income" fill="#7c3aed" radius={[4, 4, 0, 0]} name="Savings" />
+                            <Bar dataKey="savings" fill="#7c3aed" radius={[4, 4, 0, 0]} name="Savings" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
