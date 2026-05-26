@@ -5,5 +5,5 @@ This File is created for the storage of project details
   2) Shows your spendings
   3) Categorises your expence
   4) Smart dashboard system.
-  5) 
+  5) Great UI UX
   6) Created a Group wise splitting
