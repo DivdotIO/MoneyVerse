@@ -6,7 +6,6 @@ This File is created for the storage of project details
   3) Categorises your expence
   4) Smart dashboard system.
   5) Great UI UX
-  6) Dark and light mode
   7) Created a Group wise splitting
   8) Want to integrate with payment apps
   9) User need to add up the expences
